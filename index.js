@@ -23,16 +23,18 @@ const restartSpinner = (newText, isSuccessful = true) => {
     });
 
     restartSpinner("Fetching free movies of the week");
-    const films = await Mk2.getFilmsByEpisode("gregg-alastair-et-les-autres");
-    const firstFilm = films[0];
+    const episode = await Mk2.getEpisodeOfTheWeek();
+    const films = await Mk2.getFilmsByEpisode(episode.uid);
 
-    restartSpinner(`Fetching URL for ${firstFilm.data.title}`);
-    const links = await Inplayer.getUrlFromVideo(firstFilm.data.video_id);
+    console.log(`\nThere are ${films.length} movies available for download\n`)
 
-    restartSpinner(`Downloading ${firstFilm.data.title}`);
-    await Vimeo.download(firstFilm.data.title, links);
-
-    spinner.succeed();
+    for (const film of films) {
+      restartSpinner(`Fetching URL for ${film.data.title}`);
+      const links = await Inplayer.getUrlFromVideo(film.data.video_id);
+      restartSpinner(`Downloading ${film.data.title}`);
+      await Vimeo.download(film.data.title, links);
+      spinner.succeed();
+    }
   } catch (err) {
     console.log(err);
     spinner.fail();
